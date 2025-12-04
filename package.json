@@ -1,0 +1,28 @@
+{
+  "name": "alexa-lista-super",
+  "version": "1.0.0",
+  "description": "Backend para Alexa Skill de lista de super con bot de Telegram",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "alexa",
+    "telegram",
+    "shopping-list"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ask-sdk-core": "^2.13.0",
+    "ask-sdk-model": "^1.29.0",
+    "axios": "^1.13.2",
+    "dotenv": "^17.2.3",
+    "express": "^4.18.2",
+    "node-telegram-bot-api": "^0.61.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
