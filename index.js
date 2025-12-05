@@ -164,13 +164,21 @@ const AgregarProductoIntentHandler = {
       && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AgregarProductoIntent';
   },
   async handle(handlerInput) {
-    const producto = Alexa.getSlotValue(handlerInput.requestEnvelope, 'producto');
+    const productoRaw = Alexa.getSlotValue(handlerInput.requestEnvelope, 'producto');
     
-    // Agregar producto a la lista
+    // Separar múltiples productos por "y" o comas
+    const productosArray = productoRaw
+      .split(/\s+y\s+|,\s*/i) // Separa por " y " o comas
+      .map(p => p.trim())
+      .filter(p => p.length > 0);
+    
+    // Agregar todos los productos a la lista
     const ahora = new Date();
-    listaCompras.push({
-      producto: producto,
-      fecha: ahora.toISOString()
+    productosArray.forEach(producto => {
+      listaCompras.push({
+        producto: producto,
+        fecha: ahora.toISOString()
+      });
     });
     
     // Enviar mensaje a Telegram con formato mejorado
@@ -191,12 +199,18 @@ const AgregarProductoIntentHandler = {
         reply_markup: keyboard 
       });
       
-      console.log('✅ Mensaje enviado a Telegram:', producto);
+      console.log('✅ Productos enviados a Telegram:', productosArray.join(', '));
     } catch (error) {
       console.error('❌ Error al enviar mensaje a Telegram:', error);
     }
     
-    const speakOutput = `He agregado ${producto} a tu lista del super. ¿Algo más?`;
+    // Respuesta dinámica según cantidad de productos
+    let speakOutput;
+    if (productosArray.length === 1) {
+      speakOutput = `He agregado ${productosArray[0]} a tu lista del super. ¿Algo más?`;
+    } else {
+      speakOutput = `He agregado ${productosArray.length} productos a tu lista: ${productosArray.join(', ')}. ¿Algo más?`;
+    }
     
     return handlerInput.responseBuilder
       .speak(speakOutput)
