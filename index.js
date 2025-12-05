@@ -205,6 +205,64 @@ const AgregarProductoIntentHandler = {
   }
 };
 
+// Handler para agregar VARIOS productos
+const AgregarVariosProductosIntentHandler = {
+  canHandle(handlerInput) {
+    return Alexa.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+      && Alexa.getIntentName(handlerInput.requestEnvelope) === 'AgregarVariosProductosIntent';
+  },
+  async handle(handlerInput) {
+    // Obtener todos los slots de productos
+    const productoUno = Alexa.getSlotValue(handlerInput.requestEnvelope, 'productoUno');
+    const productoDos = Alexa.getSlotValue(handlerInput.requestEnvelope, 'productoDos');
+    const productoTres = Alexa.getSlotValue(handlerInput.requestEnvelope, 'productoTres');
+    const productoCuatro = Alexa.getSlotValue(handlerInput.requestEnvelope, 'productoCuatro');
+    
+    // Crear array con los productos que existen
+    const productos = [productoUno, productoDos, productoTres, productoCuatro].filter(p => p);
+    
+    // Agregar todos los productos a la lista
+    const ahora = new Date();
+    productos.forEach(producto => {
+      listaCompras.push({
+        producto: producto,
+        fecha: ahora.toISOString()
+      });
+    });
+    
+    // Enviar mensaje a Telegram con formato mejorado
+    try {
+      const mensaje = formatearListaCompleta();
+      
+      const keyboard = {
+        inline_keyboard: [
+          [
+            { text: '👁️ Ver Lista', callback_data: 'ver_lista' },
+            { text: '🗑️ Limpiar Lista', callback_data: 'limpiar_lista' }
+          ]
+        ]
+      };
+      
+      await bot.sendMessage(chatId, mensaje, { 
+        parse_mode: 'Markdown',
+        reply_markup: keyboard 
+      });
+      
+      console.log('✅ Productos enviados a Telegram:', productos.join(', '));
+    } catch (error) {
+      console.error('❌ Error al enviar mensaje a Telegram:', error);
+    }
+    
+    const cantidadProductos = productos.length;
+    const speakOutput = `He agregado ${cantidadProductos} producto${cantidadProductos > 1 ? 's' : ''} a tu lista: ${productos.join(', ')}. ¿Algo más?`;
+    
+    return handlerInput.responseBuilder
+      .speak(speakOutput)
+      .reprompt('¿Necesitas agregar otro producto?')
+      .getResponse();
+  }
+};
+
 // Handler para ayuda
 const HelpIntentHandler = {
   canHandle(handlerInput) {
@@ -258,6 +316,7 @@ const skillBuilder = Alexa.SkillBuilders.custom()
   .addRequestHandlers(
     LaunchRequestHandler,
     AgregarProductoIntentHandler,
+    AgregarVariosProductosIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler
   )
